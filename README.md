@@ -16,7 +16,11 @@ REST API сервис для обработки выгрузок данных и
 >>2.1 [Установка требуемых пакетов](https://github.com/dmitriev-z/backend_yandex#21-установка-требуемых-пакетов)  
 >>2.2 [Установка MongoDB Community Edition](https://github.com/dmitriev-z/backend_yandex#22-установка-mongodb-community-edition)  
 >>2.3 [Создание виртуального окружения](https://github.com/dmitriev-z/backend_yandex#23-создание-виртуального-окружения)  
->>2.4 [Установка требуемых python библиотек](https://github.com/dmitriev-z/backend_yandex#24-установка-требуемых-python-библиотек)  
+>>2.4 [Установка требуемых python библиотек](https://github.com/dmitriev-z/backend_yandex#24-установка-требуемых-python-библиотек)
+>
+>3\. [Запуск сервиса](https://github.com/dmitriev-z/backend_yandex#3-запуск-сервиса)
+>>3.1. [Запуск сервиса локально](https://github.com/dmitriev-z/backend_yandex#31-запуск-сервиса-локально)  
+>>3.2. [Запуск на удаленном сервере](https://github.com/dmitriev-z/backend_yandex#32-запуск-на-удаленном-сервере)
 
 ## 1. Описание сервиса
 Сервис написан на `Python 3.6` и запущен в виртуальной окружении с именем `env`.    
@@ -214,7 +218,12 @@ sudo apt-get install python3-pip
 ```
 
 ### 2.2 Установка MongoDB Community Edition
-Подробная инструкция по установке MongoDB Community Edition представлена на [официальном сайте](https://docs.mongodb.com/v3.2/administration/install-community/).
+Подробная инструкция по установке MongoDB Community Edition представлена на [официальном сайте](https://docs.mongodb.com/v3.2/administration/install-community/).  
+После установки базы данных необхродимо включить её автозапуск после перезагрузки машины.
+Для этого выполните в терминале следующую команду:
+```shell script
+sudo systemctl enable mongod
+```
 
 ### 2.3. Создание виртуального окружения
 Для корректной работы сервиса необходимо изолировать его от других python-приложений. Для этого необходимо создать виртуальное окружение.  
@@ -255,5 +264,72 @@ Requests - библиотека для работы с HTTP забросами. 
 sudo pip3 install -r requirements.txt
 ```
 
+## 3. Запуск сервиса
+
+### 3.1. Запуск сервиса локально
+Для запуска сервиса локально необходимо указать фрейворку Flask с каким приложением работать.  
+Для это выполните в терминале следующую команду:
+```shell script
+export FLASK_APP=service.py
+```
+После этого можно запустить сервис, выполнив в терминале следующую команду:
+```shell script
+flask run
+```
+Данная команда запустит сервис на локальной машине на порту `5000`.
+
+Если вы хотите запустить сервис на другом порту, то задайте аргумент `--port` при выполнениее предыдущей команды:
+```shell script
+flask run --port={port_to_run_app}
+```
+Таким образом приложение будет запущено на порту `{port_to_run_app}`
+
+### 3.2. Запуск на удаленном сервере
+
+Для удобства работы с сервисом на удаленном сервере необходимо создать соответсвующий системный сервис.  
+Конечно, можно было бы запустить сервис вручную, но системный сервис  позволит автоматически запускать Gunicorn и обслуживать приложение Flask через систему инициализации.
+
+Для создания системного сервиса необходимо создать файл с расширением `.service` в каталоге `/etc/systemd/system`.  
+Для этого выполните в терминале следующую команду:
+```shell script
+sudo touch /etc/systemd/system/{service_name}.service
+```
+Где `{service_name}` - имя создаваемого системного сервиса.
+
+Далее с помощью текстового редактора (nano, vim) необходимо добавить в созданный файл следующую информацию:
+```text
+[Unit]
+Description=Gunicorn instance to serve service
+After=network.target
+[Service]
+User={user}
+Group=www-data
+WorkingDirectory={service_directory}
+Environment="PATH={service_directory}/env/bin"
+ExecStart={service_directory}/env/bin/gunicorn --workers 1 --bind 0.0.0.0:{service_port} wsgi:app
+[Install]
+WantedBy=multi-user.target
+```
+Раздел `[Unit]` определяет метаданные и зависимости приложения. 
+ 
+В разделе `[Service\` указываются:
+1. Пользователь `User={user}` и группа `Group=www-data`, с помощью которых будет запущен сервис.  
+2. Рабочий каталог сервиса `WorkingDirectory={service_directory}`, а так же путь к виртуальному окружению `Environment="PATH={service_directory}/env/bin"`.
+3. Команда, с помощью которйо будет запускаться сервис `ExecStart={service_directory}/env/bin/gunicorn --workers 1 --bind 0.0.0.0:{service_port} wsgi:app`  
+Согласно данной команде, система будет запускать один рабочий процесс на порту `{service_port}`.
+
+Раздел `[Install]` определяет, к чему должен подключиться сервис во время автозапуска.
+
+Закройте файл, сохранив изменения.
+
+Далее необходимо запустить сервис, выполнив в терминале следующую команду:
+```shell script
+sudo systemctl start {service_name}
+```
+А так же включить сервис в автозапуск, выполнив в терминале слледующую команду:
+```shell script
+sudo systemctl enable {service_name}
+```
+
 [CHANGELOG]: ./CHANGELOG.md
-[version-badge]: https://img.shields.io/badge/version-1.0.4-blue.svg
+[version-badge]: https://img.shields.io/badge/version-1.0.5-blue.svg
