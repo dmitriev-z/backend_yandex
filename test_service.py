@@ -80,6 +80,18 @@ def service_address(pytestconfig):
     return pytestconfig.getoption("service_address")
 
 
+def generate_10000_citizens_with_1000_relations():
+    test_data = {'citizens': []}
+    for i in range(1, 10001):
+        citizen = copy.deepcopy(CORRECT_CITIZEN_DATA['citizens'][0])
+        citizen['citizen_id'] = i
+        test_data['citizens'].append(citizen)
+    for i in range(0, 2000, 2):
+        test_data['citizens'][i]['relatives'] = [i + 2]
+        test_data['citizens'][i + 1]['relatives'] = [i + 1]
+    return test_data
+
+
 class TestImport:
     @pytest.mark.parametrize(
         'data',
@@ -499,22 +511,12 @@ class TestImport:
             assert r.json() == expected_json
             assert database.imports == imports
 
-    def test_big_import_request_time(self, service_address: str, database: db.DataBase):
-        def generate_test_data():
-            test_data = {'citizens': []}
-            for i in range(1, 10001):
-                citizen = copy.deepcopy(CORRECT_CITIZEN_DATA['citizens'][0])
-                test_data['citizens'].append(citizen)
-            for i in range(0, 2000, 2):
-                test_data['citizens'][i]['relatives'] = [i + 2]
-                test_data['citizens'][i + 1]['relatives'] = [i + 1]
-            return test_data
-
+    def test_import_request_time(self, service_address: str, database: db.DataBase):
         request_time = datetime.datetime.utcnow()
-        data = generate_test_data()
-        requests.post(f'http://{service_address}/imports', json=data)
+        r = requests.post(f'http://{service_address}/imports', json=generate_10000_citizens_with_1000_relations())
         response_time = datetime.datetime.utcnow()
         eval_time = (response_time - request_time).total_seconds()
+        assert r.status_code == 201
         assert eval_time <= 10.0
 
 
@@ -829,8 +831,9 @@ class TestPatch:
         assert r.status_code == 400
         assert sorted(citizens, key=lambda c: c['citizen_id']) == database.get_all_import_citizens(1)
 
-    def test_correct_citizens_patch(self, service_address: str, database: db.DataBase, ):
-        requests.post(f'http://{service_address}/imports', json=CORRECT_CITIZENS_DATA)
+    def test_correct_citizens_patch(self, service_address: str, database: db.DataBase):
+        citizens = copy.deepcopy(CORRECT_CITIZENS_DATA['citizens'])
+        database.insert_citizens_to_new_import(citizens)
         data = {
             "name": "Иванова Мария Леонидовна",
             "town": "Москва",
@@ -881,12 +884,42 @@ class TestPatch:
         expected_citizens[0]['relatives'].remove(3)
         assert database.get_all_import_citizens(1) == sorted(expected_citizens, key=lambda c: c['citizen_id'])
 
+    def test_path_citizen_request_time(self, service_address: str, database: db.DataBase):
+        citizens = generate_10000_citizens_with_1000_relations()
+        database.insert_citizens_to_new_import(citizens['citizens'])
+        data = {
+            'town': 'Москва',
+            'street': 'Льва Толстого',
+            'building': '16к7стр5',
+            'apartment': 7,
+            'name': 'Иванов Иван Иванович',
+            'birth_date': '26.12.1986',
+            'gender': 'male',
+            'relatives': [3],
+        }
+        request_time = datetime.datetime.now()
+        r = requests.patch(f'http://{service_address}/imports/1/citizens/1', json=data)
+        response_time = datetime.datetime.now()
+        eval_time = (response_time - request_time).total_seconds()
+        assert r.status_code == 200
+        assert eval_time <= 10.0
+
 
 class TestGet:
     def test_get_citizens(self, service_address: str, database: db.DataBase):
-        requests.post(f'http://{service_address}/imports', json=CORRECT_CITIZENS_DATA)
-        expected_citizens = CORRECT_CITIZENS_DATA['citizens']
+        citizens = copy.deepcopy(CORRECT_CITIZENS_DATA)
+        requests.post(f'http://{service_address}/imports', json=citizens)
         r = requests.get(f'http://{service_address}/imports/1/citizens')
         assert r.status_code == 200
-        citizens = r.json()['data']
-        assert citizens == expected_citizens
+        expected_json = {'data': citizens['citizens']}
+        assert r.json() == expected_json
+
+    def test_get_citizens_request_time(self, service_address: str, database: db.DataBase):
+        citizens = generate_10000_citizens_with_1000_relations()
+        database.insert_citizens_to_new_import(citizens['citizens'])
+        request_time = datetime.datetime.utcnow()
+        r = requests.get(f'http://{service_address}/imports/1/citizens')
+        response_time = datetime.datetime.utcnow()
+        eval_time = (response_time - request_time).total_seconds()
+        assert r.status_code == 200
+        assert eval_time <= 10.0

@@ -4,12 +4,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.1.1] - 2019-08-28
+## Added
+- `generate_10000_citizens_with_1000_relations` method to tests
+- `test_patch_citizen_request_time` test method
+- `test_get_citizens_request_time` test method
+
+## Changed
+- `test_big_import_request_time` test method structure
+- `test_big_import_request_time` renamed to `test_import_request_time`
+- `test_correct_citizens_patch` test method
+
 ## [1.1.0] - 2019-08-28
 ## Changed
 - Request data validation algorithms
 
 ## Fixed
-- test_get_citizens
+- `test_get_citizens`
 
 ## [1.0.6] - 2019-08-27
 ## Added
@@ -22,7 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [1.0.4] - 2019-08-27
 ## Added
 - Service setup instructions to README file
-- qunicorn to requirements.txt
+- qunicorn to `requirements.txt`
 
 ## [1.0.3] - 2019-08-27
 ## Added
