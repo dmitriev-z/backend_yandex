@@ -881,8 +881,12 @@ class TestPatch:
         expected_citizens[0]['relatives'].remove(3)
         assert database.get_all_import_citizens(1) == sorted(expected_citizens, key=lambda c: c['citizen_id'])
 
+
+class TestGet:
     def test_get_citizens(self, service_address: str, database: db.DataBase):
         requests.post(f'http://{service_address}/imports', json=CORRECT_CITIZENS_DATA)
         expected_citizens = CORRECT_CITIZENS_DATA['citizens']
-        citizens = database.get_all_import_citizens(1)
+        r = requests.get(f'http://{service_address}/imports/1/citizens')
+        assert r.status_code == 200
+        citizens = r.json()['data']
         assert citizens == expected_citizens

@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.1.0] - 2019-08-28
+## Changed
+- Request data validation algorithms
+
+## Fixed
+- test_get_citizens
+
 ## [1.0.6] - 2019-08-27
 ## Added
 - Service test instructions to README file
