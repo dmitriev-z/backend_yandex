@@ -4,16 +4,22 @@
 REST API сервис для обработки выгрузок данных интернет-магазина подарков.
 
 ## Содержание
-1. [Описание сервиса](https://github.com/dmitriev-z/backend_yandex#1-описание-сервиса)
->1.1 [Обработчики запросов](https://github.com/dmitriev-z/backend_yandex#11-обработчики-запросов)    
->>1.1.1 [POST /imports](https://github.com/dmitriev-z/backend_yandex#111-post-imports)  
->>1.1.2 [PATCH /imports/$import_id/citizens/$citizen_id](https://github.com/dmitriev-z/backend_yandex#112-patch-importsimport_idcitizenscitizen_id)   
->>1.2.3 [GET /imports/$import_id/citizens](https://github.com/dmitriev-z/backend_yandex#113-get-importsimport_idcitizens)
+>1\. [Описание сервиса](https://github.com/dmitriev-z/backend_yandex#1-описание-сервиса)
+>>1.1 [Обработчики запросов](https://github.com/dmitriev-z/backend_yandex#11-обработчики-запросов)    
+>>>1.1.1 [POST /imports](https://github.com/dmitriev-z/backend_yandex#111-post-imports)  
+>>>1.1.2 [PATCH /imports/$import_id/citizens/$citizen_id](https://github.com/dmitriev-z/backend_yandex#112-patch-importsimport_idcitizenscitizen_id)   
+>>>1.1.3 [GET /imports/$import_id/citizens](https://github.com/dmitriev-z/backend_yandex#113-get-importsimport_idcitizens)
+>>
+>>1.2 [Управление сервисом](https://github.com/dmitriev-z/backend_yandex#12-управление-сервисом)
 >
->1.2 [Управление сервисом](https://github.com/dmitriev-z/backend_yandex#12-управление-сервисом)
+>2\. [Установка сервиса](https://github.com/dmitriev-z/backend_yandex#2-установка-сервиса)
+>>2.1 [Установка требуемых пакетов](https://github.com/dmitriev-z/backend_yandex#21-установка-требуемых-пакетов)  
+>>2.2 [Установка MongoDB Community Edition](https://github.com/dmitriev-z/backend_yandex#22-установка-mongodb-community-edition)  
+>>2.3 [Создание виртуального окружения](https://github.com/dmitriev-z/backend_yandex#23-создание-виртуального-окружения)  
+>>2.4 [Установка требуемых python библиотек](https://github.com/dmitriev-z/backend_yandex#24-установка-требуемых-python-библиотек)  
 
 ## 1. Описание сервиса
-Сервис написан на `Python 3.6`.    
+Сервис написан на `Python 3.6` и запущен в виртуальной окружении с именем `env`.    
 Сервис развернут на виртуальной машине `84.201.156.229` на порту `8080` .  
 В качестве хранилища данных используется NoSQL база данных MongoDB Community Edition. База данных развернута на той же виртуальной машине на порту `27017`.
 
@@ -195,5 +201,59 @@ sudo systemctl restart yandexbackend
 sudo systemctl status yandexbackend
 ```
 
+## 2. Установка сервиса
+Для установки сервиса в первую очередь необходимо склонировать данный репозиторий.  
+После этого перейдите в папку с склонироованным репозиторием.
+
+### 2.1. Установка требуемых пакетов
+Для работы с python библиотеками необходимо установить менеджер пакетов [pip](https://pip.pypa.io/en/stable/).  
+Для установки `pip` выполните в терминале следующие команды:
+```shell script
+sudo apt-get update
+sudo apt-get install python3-pip
+```
+
+### 2.2 Установка MongoDB Community Edition
+Подробная инструкция по установке MongoDB Community Edition представлена на [официальном сайте](https://docs.mongodb.com/v3.2/administration/install-community/).
+
+### 2.3. Создание виртуального окружения
+Для корректной работы сервиса необходимо изолировать его от других python-приложений. Для этого необходимо создать виртуальное окружение.  
+Для работы с виртуальными окружениями необходимо установить библиотеку [virtualenv](https://virtualenv.pypa.io/en/latest/)
+Для установки `virtualenv` выполните в терминале следующую команду:
+```shell script
+sudo pip3 install virtualenv
+```
+Далее необходимо создать виртуальную окружение. Для этого выполните в терминале следующую команду:
+```shell script
+virtualenv {env_name}
+```
+Данная команда создаст новое виртуальное окружение с именем `{env_name}` в катологе `{env_name}` текущей директории.
+
+Далее необходимо включить созданное виртуальное окружение. Для этого выполните в терминале следующую команду:
+```shell script
+source {env_name}/bin/activate
+```
+
+### 2.4. Установка требуемых python библиотек
+Для работы сервиса необходима установка следующих python-библиотек:
+- [Flask](https://palletsprojects.com/p/flask/)  
+Flask - фреймворк WSGI веб-приложений.
+- [Gunicorn](https://gunicorn.org/)  
+Gunicorn - WSGI HTTP сервер.
+- [Cerberus](http://docs.python-cerberus.org/en/stable/)  
+Cerberus - библиотека, предоставляющая инструменты для валидации данных.
+- [Pymongo](https://api.mongodb.com/python/current/index.html)  
+Pymongo - библитотека, предоставляющая инструменты для работы с MongoDB.
+- [Pytest](https://docs.pytest.org/en/latest/)  
+Pytest - библиоткека для написания тестов. 
+- [Requests](https://2.python-requests.org/en/master/)  
+Requests - библиотека для работы с HTTP забросами. В данном проекте используется в тестах.
+
+Все требуемые библиотеки описаны в файле `requirements.txt`.  
+Для установки требуемых библиотек выполните в терминале следующую команду:
+```shell script
+sudo pip3 install -r requirements.txt
+```
+
 [CHANGELOG]: ./CHANGELOG.md
-[version-badge]: https://img.shields.io/badge/version-1.0.3-blue.svg
+[version-badge]: https://img.shields.io/badge/version-1.0.4-blue.svg
