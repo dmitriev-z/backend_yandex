@@ -4,12 +4,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [3.0.0] - 2019-08-28
+## Added
+- `/tests/__init__` file for adding path to service modules to `sys.path`
+- `NewType` variables for all types used in service modules
+- Type hints to methods in `/service/service_api.py`, `/tests/test_service.py`, `/tests/conftest,py`
+- Type hints to methods in `/service/database_framework.py` and `/service/service_framework` 
+in places where they were forgotten
+- Steps for removing `_id` field from data returned from database
+
+## Changed
+- Service architecture:
+  - `conftest.py` and `test_service.py` moved to `/tests` folder
+  - API module moved to `/service/service_api.py`
+  - API requests processing logic moved to `/service/service_framework.py`
+  - `db.py` module renamed to `database_framework.py` and moved to `/service/database_framework.py`
+  - WSGI configuration file moved to `/service/wsgi.py`
+- Documentation about service initialization in README file
+- Documentation about service testing in README file
+
 ## [2.0.0] - 2019-08-28
 ## Added
 - `get_citizens_with_relatives_dict` method to database framework
 - `BirthdayFmt` variable to service
 - New REST API method `get_birthdays`
 - Test for new REST API method (class `TestGetBirthdays`)
+- Documentation for new REST API method to README file
 - `test_get_incorrect_import_citizens` test method
 
 ## Changed

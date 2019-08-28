@@ -321,9 +321,9 @@ sudo pip3 install -r requirements.txt
 
 ### 3.1. Запуск сервиса локально
 Для запуска сервиса локально необходимо указать фрейворку Flask с каким приложением работать.  
-Для это выполните в терминале следующую команду:
+Для этого, находясь в корневом каталоге сервиса, выполните в терминале следующую команду:
 ```shell script
-export FLASK_APP=service.py
+export FLASK_APP=service.service_api.py
 ```
 После этого можно запустить сервис, выполнив в терминале следующую команду:
 ```shell script
@@ -359,7 +359,7 @@ User={user}
 Group=www-data
 WorkingDirectory={service_directory}
 Environment="PATH={service_directory}/env/bin"
-ExecStart={service_directory}/env/bin/gunicorn --workers 1 --bind 0.0.0.0:{service_port} wsgi:app
+ExecStart={service_directory}/env/bin/gunicorn --workers 1 --bind 0.0.0.0:{service_port} service.wsgi:app
 [Install]
 WantedBy=multi-user.target
 ```
@@ -368,7 +368,7 @@ WantedBy=multi-user.target
 В разделе `[Service\` указываются:
 1. Пользователь `User={user}` и группа `Group=www-data`, с помощью которых будет запущен сервис.  
 2. Рабочий каталог сервиса `WorkingDirectory={service_directory}`, а так же путь к виртуальному окружению `Environment="PATH={service_directory}/env/bin"`.
-3. Команда, с помощью которйо будет запускаться сервис `ExecStart={service_directory}/env/bin/gunicorn --workers 1 --bind 0.0.0.0:{service_port} wsgi:app`  
+3. Команда, с помощью которйо будет запускаться сервис `ExecStart={service_directory}/env/bin/gunicorn --workers 1 --bind 0.0.0.0:{service_port} service.wsgi:app`  
 Согласно данной команде, система будет запускать один рабочий процесс на порту `{service_port}`.
 
 Раздел `[Install]` определяет, к чему должен подключиться сервис во время автозапуска.
@@ -415,13 +415,17 @@ db.dropDatabase()
 ```
 ---
 
-Для запуска тестов выполните в терминале следующую команду:
+Для запуска тестов из корневой директории сервиса выполните в терминале следующую команду:
+```shell script
+pytest tests/test_service.py -v
+```
+Для запуска тестов из директории `/tests` выполните в терминале следующую команду:
 ```shell script
 pytest test_service.py -v
 ```
 Для тестов API используется баблиотека `requests`.  
 По умолчанию тесты будут отправлять запросы по адресу `http://127.0.0.1:5000/{path}`.
-Если вы запустили сервис на порту, отличном от `5000`, то для этого предусмотрен аргумент `--service-address`  
+Если вы запустили сервис на порту, отличном от `5000`, то для этого предусмотрен аргумент `--service-address`.  
 Чтобы тесты отправляли запросы по другому адресу, запустите тесты, выполнив в терминале следующую команду:
 ```shell script
 pytest test_service.py --service-address 127.0.0.1:{port}
@@ -430,4 +434,4 @@ pytest test_service.py --service-address 127.0.0.1:{port}
 
 
 [CHANGELOG]: ./CHANGELOG.md
-[version-badge]: https://img.shields.io/badge/version-2.0.0-blue.svg
+[version-badge]: https://img.shields.io/badge/version-3.0.0-blue.svg
