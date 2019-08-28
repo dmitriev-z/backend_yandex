@@ -8,7 +8,8 @@ REST API сервис для обработки выгрузок данных и
 >>1.1 [Обработчики запросов](https://github.com/dmitriev-z/backend_yandex#11-обработчики-запросов)    
 >>>1.1.1 [POST /imports](https://github.com/dmitriev-z/backend_yandex#111-post-imports)  
 >>>1.1.2 [PATCH /imports/$import_id/citizens/$citizen_id](https://github.com/dmitriev-z/backend_yandex#112-patch-importsimport_idcitizenscitizen_id)   
->>>1.1.3 [GET /imports/$import_id/citizens](https://github.com/dmitriev-z/backend_yandex#113-get-importsimport_idcitizens)
+>>>1.1.3 [GET /imports/$import_id/citizens](https://github.com/dmitriev-z/backend_yandex#113-get-importsimport_idcitizens)  
+>>>1.1.4 [GET /imports/$import_id/citizens/birthdays](https://github.com/dmitriev-z/backend_yandex#114-get-importsimport_idcitizensbirthdays)
 >>
 >>1.2 [Управление сервисом](https://github.com/dmitriev-z/backend_yandex#12-управление-сервисом)
 >
@@ -27,19 +28,21 @@ REST API сервис для обработки выгрузок данных и
 ## 1. Описание сервиса
 Сервис написан на `Python 3.6` и запущен в виртуальной окружении с именем `env`.    
 Сервис развернут на виртуальной машине `84.201.156.229` на порту `8080` .  
-В качестве хранилища данных используется NoSQL база данных MongoDB Community Edition. База данных развернута на той же виртуальной машине на порту `27017`.
+В качестве хранилища данных используется NoSQL база данных MongoDB Community Edition. 
+База данных развернута на той же виртуальной машине на порту `27017`.
 
 ### 1.1. Обработчики запросов
 Сервис поддерживает 3 обработчика запросов:
 
-| **№**   | **URL**           | **Method**        | 
-|:---:| ------------- |:-------------:| 
-| 1   |   `http://84.201.156.229/imports`    | *POST* |
-| 2   |   `http://84.201.156.229/imports/$import_id/citizens/$citizen_id`    | *PATCH*     |
-| 3   | `http://84.201.156.229/imports/$import_id/citizens` | *GET*      |
+|**№**|**URL**| **Method**| 
+|:---:|---|:---:| 
+|1|`http://84.201.156.229/imports`|*POST*|
+|2|`http://84.201.156.229/imports/$import_id/citizens/$citizen_id`|*PATCH*|
+|3|`http://84.201.156.229/imports/$import_id/citizens`|*GET*|
+|4|`http://84.201.156.229/imports/$import_id/citizens/birthdays` |*GET*|
 
 #### 1.1.1 POST /imports
-Принимает на вход набор с данными о жителях в формате json и сохраняет его с уникальным идентификатором import_id.
+Принимает на вход набор с данными о жителях в формате json и сохраняет его с уникальным идентификатором import_id.  
 В наборе данных для каждого жителя должны присутствовать все поля, значения не могут быть null , порядок полей не важен:
 
 |**Поле** | **Тип** | **Значение** |
@@ -104,12 +107,15 @@ HTTP 201
     }
 }
 ```
-В случае, если входные данные не прошли валидацию (данные не были переданы, отсутствуют обязательные поля, присутсвуют неописанные поля, неправильное значение поля), сервис вернет ответ `400: Bad Request`.
+В случае, если входные данные не прошли валидацию 
+(данные не были переданы, отсутствуют обязательные поля, присутсвуют неописанные поля, неправильное значение поля), 
+сервис вернет ответ `400: Bad Request`.
 
 #### 1.1.2. PATCH /imports/$import_id/citizens/$citizen_id
 Изменяет информацию о жителе `$citizen_id` в указанном наборе данных `$import_id`.
-На вход подается JSON в котором можно указать любые данные о жителе, кроме `citizen_id` : `name` , `gender` , `birth_date (UTC)`, `relatives` , `town` , `street` , `building` , `apartment` .
+На вход подается JSON в котором можно указать любые данные о жителе, кроме `citizen_id` : `name` , `gender` , `birth_date (UTC)`, `relatives` , `town` , `street` , `building` , `apartment` .  
 В запросе должно быть указано хотя бы одно поле, значения не могут быть null.
+
 Пример запроса:
 ```
 PATCH /imports/1/citizens/3
@@ -142,7 +148,8 @@ HTTP 200
 В случае, если входные данные не прошли валидацию (данные не были переданы, присутсвуют неописанные поля, неправильное значение поля), сервис вернет ответ `400: Bad Request`.
 
 #### 1.1.3. GET /imports/$import_id/citizens
-Возвращает список всех жителей для указанного набора данных.
+Возвращает список всех жителей для указанного набора данных. 
+ 
 Если набор данных `$import_id` присутствует в базе данных, то сервис вернет список всех citizens этого набора данных:
 ```
 HTTP 200
@@ -182,6 +189,50 @@ HTTP 200
             "relatives": [1]
         }
     ]
+}
+```
+Если набор данных `$import_id` отсутсвует в базе данных, то сервис вернет ответ `400: Bad Request`.
+
+#### 1.1.4. GET /imports/$import_id/citizens/birthdays
+Возвращает жителей и количество подарков, которые они будут покупать своим ближайшим родственникам (1-го порядка), 
+сгруппированных по месяцам из указанного набора данных.  
+Если в импорте в каком-либо месяце нет ни одного жителя с днями рождения
+ближайших родственников, значением такого ключа должен быть пустой список.  
+
+Если набор данных `$import_id` присутствует в базе данных, сервис вернет список жителей и количество подарков, 
+которые они будут покупать своим ближайшим родственникам, сгруппированных по месяцам из указанного набора данных:
+```
+HTTP 200
+{
+    "data": {
+        "1": [],
+        "2": [],
+        "3": [],
+        "4": [{
+            "citizen_id": 1,
+            "presents": 1,
+        }],
+        "5": [],
+        "6": [],
+        "7": [],
+        "8": [],
+        "9": [],
+        "10": [],
+        "11": [{
+            "citizen_id": 1,
+            "presents": 1
+        }],
+        "12": [
+            {
+                "citizen_id": 2,
+                "presents": 1
+            },
+            {
+                "citizen_id": 3,
+                "presents": 1
+            }
+        ]
+    }
 }
 ```
 Если набор данных `$import_id` отсутсвует в базе данных, то сервис вернет ответ `400: Bad Request`.
@@ -379,4 +430,4 @@ pytest test_service.py --service-address 127.0.0.1:{port}
 
 
 [CHANGELOG]: ./CHANGELOG.md
-[version-badge]: https://img.shields.io/badge/version-1.1.1-blue.svg
+[version-badge]: https://img.shields.io/badge/version-2.0.0-blue.svg

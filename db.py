@@ -32,6 +32,17 @@ class DataBase:
             citizen.pop('_id')
         return sorted(citizens, key=lambda c: c['citizen_id'])
 
+    def get_citizens_with_relatives_dict(self, import_id: int):
+        import_ = self.db[f'{import_id}']
+        citizens = list(import_.find({'relatives': {'$not': {'$size': 0}}}))
+        citizens_with_relatives_dict = {}
+        for citizen in citizens:
+            citizen.pop('_id')
+        citizens = sorted(citizens, key=lambda c: len(c['relatives']))
+        for citizen in citizens:
+            citizens_with_relatives_dict[citizen['citizen_id']] = citizen
+        return citizens_with_relatives_dict
+
     def get_citizen(self, import_id: int, citizen_id: int):
         import_ = self.db[f'{import_id}']
         citizen = import_.find_one({'citizen_id': citizen_id})

@@ -1,4 +1,3 @@
-import time
 import copy
 import datetime
 from typing import Any, Dict, Optional
@@ -496,7 +495,6 @@ class TestImport:
         expected_json = {"data": {"import_id": 1}}
         assert r.status_code == 201
         assert r.json() == expected_json
-        time.sleep(10)
         assert database.imports == [1]
         expected_data = sorted(citizens['citizens'], key=lambda citizen: citizen['citizen_id'])
         assert database.get_all_import_citizens(1) == expected_data
@@ -905,7 +903,11 @@ class TestPatch:
         assert eval_time <= 10.0
 
 
-class TestGet:
+class TestGetCitizens:
+    def test_get_incorrect_import_citizens(self, service_address: str, database: db.DataBase):
+        r = requests.get(f'http://{service_address}/imports/1/citizens')
+        assert r.status_code == 400
+
     def test_get_citizens(self, service_address: str, database: db.DataBase):
         citizens = copy.deepcopy(CORRECT_CITIZENS_DATA)
         requests.post(f'http://{service_address}/imports', json=citizens)
@@ -919,6 +921,43 @@ class TestGet:
         database.insert_citizens_to_new_import(citizens['citizens'])
         request_time = datetime.datetime.utcnow()
         r = requests.get(f'http://{service_address}/imports/1/citizens')
+        response_time = datetime.datetime.utcnow()
+        eval_time = (response_time - request_time).total_seconds()
+        assert r.status_code == 200
+        assert eval_time <= 10.0
+
+
+class TestGetBirthdays:
+    def test_get_incorrect_import_birthdays(self, service_address: str, database: db.DataBase):
+        r = requests.get(f'http://{service_address}/imports/1/citizens/birthdays')
+        assert r.status_code == 400
+
+    def test_get_birthdays(self, service_address: str, database: db.DataBase):
+        database.insert_citizens_to_new_import(CORRECT_CITIZENS_DATA['citizens'])
+        r = requests.get(f'http://{service_address}/imports/1/citizens/birthdays')
+        assert r.status_code == 200
+        expected_birthdays = {
+            '1': [],
+            '2': [],
+            '3': [],
+            '4': [{'citizen_id': 1, 'presents': 1}],
+            '5': [],
+            '6': [],
+            '7': [],
+            '8': [],
+            '9': [],
+            '10': [],
+            '11': [],
+            '12': [{'citizen_id': 2, 'presents': 1}],
+        }
+        expected_json = {'data': expected_birthdays}
+        assert r.json() == expected_json
+
+    def test_get_birthdays_request_time(self, service_address: str, database: db.DataBase):
+        citizens = generate_10000_citizens_with_1000_relations()
+        database.insert_citizens_to_new_import(citizens['citizens'])
+        request_time = datetime.datetime.utcnow()
+        r = requests.get(f'http://{service_address}/imports/1/citizens/birthdays')
         response_time = datetime.datetime.utcnow()
         eval_time = (response_time - request_time).total_seconds()
         assert r.status_code == 200

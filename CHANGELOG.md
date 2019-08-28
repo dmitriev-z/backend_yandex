@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.0.0] - 2019-08-28
+## Added
+- `get_citizens_with_relatives_dict` method to database framework
+- `BirthdayFmt` variable to service
+- New REST API method `get_birthdays`
+- Test for new REST API method (class `TestGetBirthdays`)
+- `test_get_incorrect_import_citizens` test method
+
+## Changed
+- `TestGet` renamed to `TestGetCitizens`
+
+## Removed
+- Unnecessary sleep from tests
+- `import time` from tests
+
 ## [1.1.1] - 2019-08-28
 ## Added
 - `generate_10000_citizens_with_1000_relations` method to tests

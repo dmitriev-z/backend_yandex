@@ -16,6 +16,7 @@ CitizenDict = Dict[str, Any]
 CitizensList = List[CitizenDict]
 ValidatedCitizen = Dict[str, Union[int, str, List[int]]]
 ValidatedCitizensList = List[ValidatedCitizen]
+BirthdayFmt = '%d.%m.%Y'
 
 
 app = flask.Flask(__name__)
@@ -44,9 +45,8 @@ def _validate_string(field, value, error):
 
 
 def _validate_date(field, value, error):
-    date_pattern = '%d.%m.%Y'
     try:
-        date = datetime.datetime.strptime(value, date_pattern).date()
+        date = datetime.datetime.strptime(value, BirthdayFmt).date()
     except (TypeError, ValueError):
         error(field, 'Wrong date format.')
     else:
@@ -111,6 +111,33 @@ class CitizensValidator:
         return validated_citizens_list
 
 
+def get_import_citizens_birthdays(import_id: int):
+    presents = {month: collections.defaultdict(int) for month in range(1, 13)}
+    birthdays = {str(month): [] for month in range(1, 13)}
+    citizens_with_relatives_dict = data_base.get_citizens_with_relatives_dict(import_id)
+    citizen_ids = list(citizens_with_relatives_dict.keys())
+    for citizen_id in citizen_ids:
+        citizen = citizens_with_relatives_dict.get(citizen_id)
+        if not citizen:
+            continue
+        citizen_relatives = citizen['relatives']
+        citizen_birth_date = datetime.datetime.strptime(citizen['birth_date'], BirthdayFmt).date()
+        for related_citizen_id in citizen_relatives:
+            related_citizen = citizens_with_relatives_dict[related_citizen_id]
+            related_citizen_birth_date = datetime.datetime.strptime(related_citizen['birth_date'], BirthdayFmt).date()
+            related_citizen_relatives = related_citizen['relatives']
+            presents[related_citizen_birth_date.month][citizen_id] += 1
+            presents[citizen_birth_date.month][related_citizen_id] += 1
+            related_citizen_relatives.remove(citizen_id)
+            if not related_citizen_relatives:
+                citizens_with_relatives_dict.pop(related_citizen_id)
+    for month, citizen_presents in presents.items():
+        for citizen_id, presents in citizen_presents.items():
+            birthdays[str(month)].append({'citizen_id': citizen_id, 'presents': presents})
+        birthdays[str(month)] = sorted(birthdays[str(month)], key=lambda c: c['citizen_id'])
+    return birthdays
+
+
 @app.route('/imports', methods=['POST'])
 def import_citizens():
     data = flask.request.json
@@ -172,4 +199,12 @@ def get_citizens(import_id: int):
     if import_id not in data_base.imports:
         return flask.make_response('Bad Request', 400)
     resp_json = {'data': data_base.get_all_import_citizens(import_id)}
+    return flask.make_response(flask.jsonify(resp_json), 200)
+
+
+@app.route('/imports/<int:import_id>/citizens/birthdays', methods=['GET'])
+def get_birthdays(import_id: int):
+    if import_id not in data_base.imports:
+        return flask.make_response('Bad Request', 400)
+    resp_json = {'data': get_import_citizens_birthdays(import_id)}
     return flask.make_response(flask.jsonify(resp_json), 200)
