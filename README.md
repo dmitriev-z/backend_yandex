@@ -434,4 +434,4 @@ pytest test_service.py --service-address 127.0.0.1:{port}
 
 
 [CHANGELOG]: ./CHANGELOG.md
-[version-badge]: https://img.shields.io/badge/version-3.0.0-blue.svg
+[version-badge]: https://img.shields.io/badge/version-3.0.1-blue.svg

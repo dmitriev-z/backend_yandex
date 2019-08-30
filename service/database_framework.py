@@ -72,7 +72,7 @@ class DataBase:
 
     def update_citizen(self, import_id: int, citizen_id: int, citizen: Citizen) -> None:
         import_ = self.db[f'{import_id}']
-        import_.update_one({'citizen_id': citizen_id}, {"$set": citizen})
+        import_.update_one({'citizen_id': citizen_id}, {'$set': citizen})
 
     def remove_citizen_from_old_relatives(self, import_id: int, citizen_id: int) -> None:
         citizen_relatives = self.get_citizen_relatives(import_id, citizen_id)

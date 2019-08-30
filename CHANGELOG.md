@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [3.0.1] - 2019-08-30
+## Changed
+- Double quotes replaced with single quotes in string variables
+
 ## [3.0.0] - 2019-08-28
 ## Added
 - `/tests/__init__` file for adding path to service modules to `sys.path`

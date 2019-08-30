@@ -35,15 +35,15 @@ CORRECT_CITIZENS_DATA = {
             'relatives': [1],
         },
         {
-            "citizen_id": 3,
-            "town": "Керчь",
-            "street": "Иосифа Бродского",
-            "building": "2",
-            "apartment": 11,
-            "name": "Романова Мария Леонидовна",
-            "birth_date": "23.11.1986",
-            "gender": "female",
-            "relatives": []
+            'citizen_id': 3,
+            'town': 'Керчь',
+            'street': 'Иосифа Бродского',
+            'building': '2',
+            'apartment': 11,
+            'name': 'Романова Мария Леонидовна',
+            'birth_date': '23.11.1986',
+            'gender': 'female',
+            'relatives': []
         },
     ]
 }
@@ -78,7 +78,7 @@ def database(request: fixtures.FixtureRequest) -> database_framework.DataBase:
 
 @pytest.fixture()
 def service_address(pytestconfig: config.Config) -> str:
-    return pytestconfig.getoption("service_address")
+    return pytestconfig.getoption('service_address')
 
 
 def generate_10000_citizens_with_1000_relations() -> Dict[str, service_framework.Citizen]:
@@ -543,7 +543,7 @@ class TestImport:
             citizens: Dict[str, service_framework.Citizens],
     ) -> None:
         r = requests.post(f'http://{service_address}/imports', json=citizens)
-        expected_json = {"data": {"import_id": 1}}
+        expected_json = {'data': {'import_id': 1}}
         assert r.status_code == 201
         assert r.json() == expected_json
         assert database.imports == [1]
@@ -553,7 +553,7 @@ class TestImport:
     def test_import_several_citizens(self, service_address: str, database: database_framework.DataBase, ) -> None:
         imports = list()
         for i in range(1, 6):
-            expected_json = {"data": {"import_id": i}}
+            expected_json = {'data': {'import_id': i}}
             r = requests.post(f'http://{service_address}/imports', json=CORRECT_CITIZEN_DATA)
             imports.append(i)
             assert r.status_code == 201
@@ -919,7 +919,7 @@ class TestPatch:
         citizens = copy.deepcopy(CORRECT_CITIZEN_DATA['citizens'])
         database.insert_citizens_to_new_import(copy.deepcopy(citizens))
         data = {
-            "street": "Пушкина",
+            'street': 'Пушкина',
         }
         r = requests.patch(f'http://{service_address}/imports/1/citizens/2', json=data)
         assert r.status_code == 400
@@ -929,26 +929,26 @@ class TestPatch:
         citizens = copy.deepcopy(CORRECT_CITIZENS_DATA['citizens'])
         database.insert_citizens_to_new_import(copy.deepcopy(citizens))
         data = {
-            "name": "Иванова Мария Леонидовна",
-            "town": "Москва",
-            "street": "Льва Толстого",
-            "building": "16к7стр5",
-            "apartment": 7,
-            "relatives": [1],
+            'name': 'Иванова Мария Леонидовна',
+            'town': 'Москва',
+            'street': 'Льва Толстого',
+            'building': '16к7стр5',
+            'apartment': 7,
+            'relatives': [1],
         }
         r = requests.patch(f'http://{service_address}/imports/1/citizens/3', json=data)
         assert r.status_code == 200
         expected_json = {
-            "data": {
-                "citizen_id": 3,
-                "town": "Москва",
-                "street": "Льва Толстого",
-                "building": "16к7стр5",
-                "apartment": 7,
-                "name": "Иванова Мария Леонидовна",
-                "birth_date": "23.11.1986",
-                "gender": "female",
-                "relatives": [1],
+            'data': {
+                'citizen_id': 3,
+                'town': 'Москва',
+                'street': 'Льва Толстого',
+                'building': '16к7стр5',
+                'apartment': 7,
+                'name': 'Иванова Мария Леонидовна',
+                'birth_date': '23.11.1986',
+                'gender': 'female',
+                'relatives': [1],
             }
         }
         assert r.json() == expected_json
@@ -957,20 +957,20 @@ class TestPatch:
         expected_citizens[0]['relatives'].append(3)
         assert database.get_all_import_citizens(1) == sorted(expected_citizens, key=lambda c: c['citizen_id'])
 
-        data = {"relatives": []}
+        data = {'relatives': []}
         r = requests.patch(f'http://{service_address}/imports/1/citizens/3', json=data)
         assert r.status_code == 200
         expected_json = {
-            "data": {
-                "citizen_id": 3,
-                "town": "Москва",
-                "street": "Льва Толстого",
-                "building": "16к7стр5",
-                "apartment": 7,
-                "name": "Иванова Мария Леонидовна",
-                "birth_date": "23.11.1986",
-                "gender": "female",
-                "relatives": [],
+            'data': {
+                'citizen_id': 3,
+                'town': 'Москва',
+                'street': 'Льва Толстого',
+                'building': '16к7стр5',
+                'apartment': 7,
+                'name': 'Иванова Мария Леонидовна',
+                'birth_date': '23.11.1986',
+                'gender': 'female',
+                'relatives': [],
             }
         }
         assert r.json() == expected_json
