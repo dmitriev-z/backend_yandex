@@ -9,7 +9,8 @@ REST API сервис для обработки выгрузок данных и
 >>>1.1.1 [POST /imports](https://github.com/dmitriev-z/backend_yandex#111-post-imports)  
 >>>1.1.2 [PATCH /imports/$import_id/citizens/$citizen_id](https://github.com/dmitriev-z/backend_yandex#112-patch-importsimport_idcitizenscitizen_id)   
 >>>1.1.3 [GET /imports/$import_id/citizens](https://github.com/dmitriev-z/backend_yandex#113-get-importsimport_idcitizens)  
->>>1.1.4 [GET /imports/$import_id/citizens/birthdays](https://github.com/dmitriev-z/backend_yandex#114-get-importsimport_idcitizensbirthdays)
+>>>1.1.4 [GET /imports/$import_id/citizens/birthdays](https://github.com/dmitriev-z/backend_yandex#114-get-importsimport_idcitizensbirthdays)  
+>>>1.1.5 [GET /imports/$import_id/towns/stat/percentile/age](https://github.com/dmitriev-z/backend_yandex#115-get-importsimport_idtownsstatpercentileage)
 >>
 >>1.2 [Управление сервисом](https://github.com/dmitriev-z/backend_yandex#12-управление-сервисом)
 >
@@ -40,6 +41,7 @@ REST API сервис для обработки выгрузок данных и
 |2|`http://84.201.156.229/imports/$import_id/citizens/$citizen_id`|*PATCH*|
 |3|`http://84.201.156.229/imports/$import_id/citizens`|*GET*|
 |4|`http://84.201.156.229/imports/$import_id/citizens/birthdays` |*GET*|
+|5|`http://84.201.156.229/imports/$import_id/towns/stat/percentile/age`|*GET*|
 
 #### 1.1.1 POST /imports
 Принимает на вход набор с данными о жителях в формате json и сохраняет его с уникальным идентификатором import_id.  
@@ -237,6 +239,32 @@ HTTP 200
 ```
 Если набор данных `$import_id` отсутсвует в базе данных, то сервис вернет ответ `400: Bad Request`.
 
+#### 1.1.5. GET /imports/$import_id/towns/stat/percentile/age
+Возвращает статистику по городам для указанного набора данных `$import_id` в разрезе возраста (полных лет) жителей: 
+`p50`, `p75`, `p99`, где число - это значение перцентиля.  
+Если набор данных `$import_id` присутствует в базе данных, 
+сервис вернет статистику по городам в разрезе возраста (полных лет) жителей:
+```
+HTTP 200
+{
+    "data": [
+        {
+            "town": "Москва",
+            "p50": 35.0,
+            "p75": 47.5,
+            "p99": 59.5
+        },
+        {
+            "town": "Санкт-Петербург",
+            "p50": 45.0,
+            "p75": 52.5,
+            "p99": 97.15
+        }
+    ]
+}
+```
+Если набор данных `$import_id` отсутсвует в базе данных, то сервис вернет ответ `400: Bad Request`.
+
 ### 1.2. Управление сервисом
 Для управления сервисом на виртуальной машине был создан системный сервис `yandexbackend`.  
 Конфигурационный файл сервиса доступен по пути `/etc/systemd/system/yandexbackend.service`.
@@ -310,6 +338,8 @@ Pymongo - библитотека, предоставляющая инструм�
 Pytest - библиоткека для написания тестов. 
 - [Requests](https://2.python-requests.org/en/master/)  
 Requests - библиотека для работы с HTTP забросами. В данном проекте используется в тестах.
+- [Numpy](https://numpy.org/)  
+Numpy - библиотека для научных вычислений.
 
 Все требуемые библиотеки описаны в файле `requirements.txt`.  
 Для установки требуемых библиотек выполните в терминале следующую команду:
@@ -434,4 +464,4 @@ pytest test_service.py --service-address 127.0.0.1:{port}
 
 
 [CHANGELOG]: ./CHANGELOG.md
-[version-badge]: https://img.shields.io/badge/version-3.1.0-blue.svg
+[version-badge]: https://img.shields.io/badge/version-4.0.0-blue.svg

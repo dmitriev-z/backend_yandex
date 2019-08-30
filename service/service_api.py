@@ -43,3 +43,12 @@ def get_import_citizens_birthdays(import_id: int) -> wrappers.Response:
         resp_json = {'data': import_citizens_birthdays}
         return flask.make_response(flask.jsonify(resp_json), 200)
     return flask.make_response('Bad Request', 400)
+
+
+@app.route('/imports/<int:import_id>/towns/stat/percentile/age', methods=['GET'])
+def get_towns_percentile_age_stats(import_id: int) -> wrappers.Response:
+    towns_percentile_age_stats = service.get_towns_percentile_age_stats(import_id)
+    if towns_percentile_age_stats:
+        resp_json = {'data': towns_percentile_age_stats}
+        return flask.make_response(flask.jsonify(resp_json), 200)
+    return flask.make_response('Bad Request', 400)

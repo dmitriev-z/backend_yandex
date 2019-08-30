@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [4.0.0] - 2019-08-30
+## Added
+- New REST API method `get_towns_percentile_age_stats` in `/service/service_api.py`
+- New service framework method `get_towns_percentile_age_stats` in `/service/service_framework.py`
+- New return type `TownsPercentileAgeStats` in `/service/service_framework.py`
+- New database framework method `get_towns_citizens_age_stats`
+ and private method `_calculate_citizen_age` in `/service/database_framework.py`
+ - New return type `TownsCitizensAgeStats` in `/service/database_framework.py`
+- Tests for new REST API method (class `TestGetTownsPercentileAgeStats` in `/tests/test_service.py`)
+- `calculate_citizen_age` method in `/tests/test_service.py`
+- `numpy` to `requirements.txt`
+- Documentation for new REST API method to README file
+- Info about `numpy` module to README file
+
+## Changed
+- `BirthdayFmt` renamed to `BirthDateFmt`
+
+## Removed
+- Unnecessary `BirthdayFmt` variable from `/service/service_framework.py`
+
+
 ## [3.1.0] - 2019-08-30
 ## Added
 - Custom Validator class to `/service/service_framework.py`

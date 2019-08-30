@@ -3,6 +3,7 @@ import copy
 import datetime
 import enum
 import multiprocessing
+import numpy
 import re
 from typing import Any, Dict, List, NewType, Optional, Tuple, Union
 
@@ -18,8 +19,7 @@ ValidatedCitizens = NewType('ValidatedCitizensList', List[ValidatedCitizen])
 NewImportId = NewType('NewImportId', int)
 PatchedCitizen = NewType('PatchedCitizen', Citizen)
 ImportCitizensBirthdays = NewType('ImportCitizensBirthdays', Dict[str, List[Dict[str, int]]])
-
-BirthdayFmt = '%d.%m.%Y'
+TownsPercentileAgeStats = NewType('TownsPercentileAgeStats', List[Dict[str, Union[str, int]]])
 
 
 class CitizenAttr(enum.Enum):
@@ -191,3 +191,19 @@ class Service:
                 birthdays[str(month)].append({'citizen_id': citizen_id, 'presents': presents})
             birthdays[str(month)] = sorted(birthdays[str(month)], key=lambda c: c['citizen_id'])
         return birthdays
+
+    def get_towns_percentile_age_stats(self, import_id: int) -> TownsPercentileAgeStats:
+        if import_id not in self.database.imports:
+            return None
+        towns_percentile_age_stats = list()
+        percentiles = [50, 75, 99]
+        towns_citizen_ages_stats = self.database.get_towns_citizens_age_stats(import_id)
+        for town, ages in towns_citizen_ages_stats.items():
+            town_percentile_age_stats = {'town': town}
+            ages_array = numpy.array(ages)
+            for percentile in percentiles:
+                town_percentile_age_stats.update(
+                    {f'p{percentile}': round(numpy.percentile(ages_array, percentile, interpolation='linear'), 2)}
+                )
+            towns_percentile_age_stats.append(town_percentile_age_stats)
+        return towns_percentile_age_stats
