@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [3.1.0] - 2019-08-30
+## Added
+- Custom Validator class to `/service/service_framework.py`
+- `_prepare_citizens` private method to `/service/database_framework.py`
+
+## Changed
+- Data validation methods moved to Validator class
+- Birthdate storing methods from `str` to `datetime.datetime`
+- `get_citizen_relatives` moved to private method `_get_citizen_relatives`
+- `get_import_citizens_birthdays` method from `/service/service_framework.py` reworked to operate with `datetime.datetime`
+- Service tests reworked to operate with `datetime.datetime`
+
 ## [3.0.1] - 2019-08-30
 ## Changed
 - Double quotes replaced with single quotes in string variables

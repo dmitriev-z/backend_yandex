@@ -64,6 +64,12 @@ CITIZEN_ATTRS_WITHOUT_ID = copy.deepcopy(CITIZEN_ATTRS)
 CITIZEN_ATTRS_WITHOUT_ID.remove(service_framework.CitizenAttr.ID)
 
 
+def prepare_citizens(citizens: database_framework.Citizens) -> database_framework.Citizens:
+    for citizen in citizens:
+        citizen['birth_date'] = datetime.datetime.strptime(citizen['birth_date'], database_framework.BirthdayFmt)
+    return citizens
+
+
 @pytest.fixture()
 def database(request: fixtures.FixtureRequest) -> database_framework.DataBase:
     database = database_framework.DataBase()
@@ -602,7 +608,7 @@ class TestPatch:
             data: Optional[dict],
     ) -> None:
         citizens = copy.deepcopy(CORRECT_CITIZEN_DATA['citizens'])
-        database.insert_citizens_to_new_import(copy.deepcopy(citizens))
+        database.insert_citizens_to_new_import(prepare_citizens(copy.deepcopy(citizens)))
         if data is None:
             r = requests.patch(f'http://{service_address}/imports/1/citizens/1')
         else:
@@ -612,7 +618,7 @@ class TestPatch:
 
     def test_patch_citizen_id(self, service_address: str, database: database_framework.DataBase, ) -> None:
         citizens = copy.deepcopy(CORRECT_CITIZEN_DATA['citizens'])
-        database.insert_citizens_to_new_import(copy.deepcopy(citizens))
+        database.insert_citizens_to_new_import(prepare_citizens(copy.deepcopy(citizens)))
         r = requests.patch(f'http://{service_address}/imports/1/citizens/1', json={'citizen_id': 2})
         assert r.status_code == 400
         assert sorted(citizens, key=lambda c: c['citizen_id']) == database.get_all_import_citizens(1)
@@ -638,14 +644,14 @@ class TestPatch:
             attr: service_framework.CitizenAttr,
     ) -> None:
         citizens = copy.deepcopy(CORRECT_CITIZEN_DATA['citizens'])
-        database.insert_citizens_to_new_import(copy.deepcopy(citizens))
+        database.insert_citizens_to_new_import(prepare_citizens(copy.deepcopy(citizens)))
         r = requests.patch(f'http://{service_address}/imports/1/citizens/1', json={attr.value: None})
         assert r.status_code == 400
         assert sorted(citizens, key=lambda c: c['citizen_id']) == database.get_all_import_citizens(1)
 
     def test_patch_external_attr(self, service_address: str, database: database_framework.DataBase, ) -> None:
         citizens = copy.deepcopy(CORRECT_CITIZEN_DATA['citizens'])
-        database.insert_citizens_to_new_import(copy.deepcopy(citizens))
+        database.insert_citizens_to_new_import(prepare_citizens(copy.deepcopy(citizens)))
         r = requests.patch(f'http://{service_address}/imports/1/citizens/1', json={'external': 'external'})
         assert r.status_code == 400
         assert sorted(citizens, key=lambda c: c['citizen_id']) == database.get_all_import_citizens(1)
@@ -675,7 +681,7 @@ class TestPatch:
     )
     def test_patch_incorrect_town(self, service_address: str, database: database_framework.DataBase, town: Any) -> None:
         citizens = copy.deepcopy(CORRECT_CITIZEN_DATA['citizens'])
-        database.insert_citizens_to_new_import(copy.deepcopy(citizens))
+        database.insert_citizens_to_new_import(prepare_citizens(copy.deepcopy(citizens)))
         r = requests.patch(f'http://{service_address}/imports/1/citizens/1', json={'town': town})
         assert r.status_code == 400
         assert sorted(citizens, key=lambda c: c['citizen_id']) == database.get_all_import_citizens(1)
@@ -710,7 +716,7 @@ class TestPatch:
             street: Any,
     ) -> None:
         citizens = copy.deepcopy(CORRECT_CITIZEN_DATA['citizens'])
-        database.insert_citizens_to_new_import(copy.deepcopy(citizens))
+        database.insert_citizens_to_new_import(prepare_citizens(copy.deepcopy(citizens)))
         r = requests.patch(f'http://{service_address}/imports/1/citizens/1', json={'street': street})
         assert r.status_code == 400
         assert sorted(citizens, key=lambda c: c['citizen_id']) == database.get_all_import_citizens(1)
@@ -745,7 +751,7 @@ class TestPatch:
             building: Any,
     ) -> None:
         citizens = copy.deepcopy(CORRECT_CITIZEN_DATA['citizens'])
-        database.insert_citizens_to_new_import(copy.deepcopy(citizens))
+        database.insert_citizens_to_new_import(prepare_citizens(copy.deepcopy(citizens)))
         r = requests.patch(f'http://{service_address}/imports/1/citizens/1', json={'building': building})
         assert r.status_code == 400
         assert sorted(citizens, key=lambda c: c['citizen_id']) == database.get_all_import_citizens(1)
@@ -771,7 +777,7 @@ class TestPatch:
     )
     def test_patch_apartment(self, service_address: str, database: database_framework.DataBase, apartment: Any) -> None:
         citizens = copy.deepcopy(CORRECT_CITIZEN_DATA['citizens'])
-        database.insert_citizens_to_new_import(copy.deepcopy(citizens))
+        database.insert_citizens_to_new_import(prepare_citizens(copy.deepcopy(citizens)))
         r = requests.patch(f'http://{service_address}/imports/1/citizens/1', json={'apartment': apartment})
         assert r.status_code == 400
         assert sorted(citizens, key=lambda c: c['citizen_id']) == database.get_all_import_citizens(1)
@@ -799,7 +805,7 @@ class TestPatch:
     )
     def test_patch_incorrect_name(self, service_address: str, database: database_framework.DataBase, name: Any) -> None:
         citizens = copy.deepcopy(CORRECT_CITIZEN_DATA['citizens'])
-        database.insert_citizens_to_new_import(copy.deepcopy(citizens))
+        database.insert_citizens_to_new_import(prepare_citizens(copy.deepcopy(citizens)))
         r = requests.patch(f'http://{service_address}/imports/1/citizens/1', json={'name': name})
         assert r.status_code == 400
         assert sorted(citizens, key=lambda c: c['citizen_id']) == database.get_all_import_citizens(1)
@@ -834,7 +840,7 @@ class TestPatch:
             birth_date: Any,
     ) -> None:
         citizens = copy.deepcopy(CORRECT_CITIZEN_DATA['citizens'])
-        database.insert_citizens_to_new_import(copy.deepcopy(citizens))
+        database.insert_citizens_to_new_import(prepare_citizens(copy.deepcopy(citizens)))
         r = requests.patch(f'http://{service_address}/imports/1/citizens/1', json={'birth_date': birth_date})
         assert r.status_code == 400
         assert sorted(citizens, key=lambda c: c['citizen_id']) == database.get_all_import_citizens(1)
@@ -867,7 +873,7 @@ class TestPatch:
             gender: Any,
     ) -> None:
         citizens = copy.deepcopy(CORRECT_CITIZEN_DATA['citizens'])
-        database.insert_citizens_to_new_import(copy.deepcopy(citizens))
+        database.insert_citizens_to_new_import(prepare_citizens(copy.deepcopy(citizens)))
         r = requests.patch(f'http://{service_address}/imports/1/citizens/1', json={'gender': gender})
         assert r.status_code == 400
         assert sorted(citizens, key=lambda c: c['citizen_id']) == database.get_all_import_citizens(1)
@@ -910,14 +916,14 @@ class TestPatch:
             relatives: Any,
     ) -> None:
         citizens = copy.deepcopy(CORRECT_CITIZEN_DATA['citizens'])
-        database.insert_citizens_to_new_import(copy.deepcopy(citizens))
+        database.insert_citizens_to_new_import(prepare_citizens(copy.deepcopy(citizens)))
         r = requests.patch(f'http://{service_address}/imports/1/citizens/1', json={'relatives': relatives})
         assert r.status_code == 400
         assert sorted(citizens, key=lambda c: c['citizen_id']) == database.get_all_import_citizens(1)
 
     def test_patch_non_existing_citizen(self, service_address: str, database: database_framework.DataBase) -> None:
         citizens = copy.deepcopy(CORRECT_CITIZEN_DATA['citizens'])
-        database.insert_citizens_to_new_import(copy.deepcopy(citizens))
+        database.insert_citizens_to_new_import(prepare_citizens(copy.deepcopy(citizens)))
         data = {
             'street': 'Пушкина',
         }
@@ -927,7 +933,7 @@ class TestPatch:
 
     def test_correct_citizens_patch(self, service_address: str, database: database_framework.DataBase) -> None:
         citizens = copy.deepcopy(CORRECT_CITIZENS_DATA['citizens'])
-        database.insert_citizens_to_new_import(copy.deepcopy(citizens))
+        database.insert_citizens_to_new_import(prepare_citizens(copy.deepcopy(citizens)))
         data = {
             'name': 'Иванова Мария Леонидовна',
             'town': 'Москва',
@@ -980,7 +986,8 @@ class TestPatch:
 
     def test_patch_citizen_request_time(self, service_address: str, database: database_framework.DataBase) -> None:
         citizens = generate_10000_citizens_with_1000_relations()
-        database.insert_citizens_to_new_import(citizens['citizens'])
+        citizens = prepare_citizens(citizens['citizens'])
+        database.insert_citizens_to_new_import(citizens)
         data = {
             'town': 'Москва',
             'street': 'Льва Толстого',
@@ -1006,7 +1013,7 @@ class TestGetCitizens:
 
     def test_get_citizens(self, service_address: str, database: database_framework.DataBase) -> None:
         citizens = copy.deepcopy(CORRECT_CITIZENS_DATA['citizens'])
-        database.insert_citizens_to_new_import(copy.deepcopy(citizens))
+        database.insert_citizens_to_new_import(prepare_citizens(copy.deepcopy(citizens)))
         r = requests.get(f'http://{service_address}/imports/1/citizens')
         assert r.status_code == 200
         expected_json = {'data': citizens}
@@ -1014,7 +1021,8 @@ class TestGetCitizens:
 
     def test_get_citizens_request_time(self, service_address: str, database: database_framework.DataBase) -> None:
         citizens = generate_10000_citizens_with_1000_relations()
-        database.insert_citizens_to_new_import(citizens['citizens'])
+        citizens = prepare_citizens(citizens['citizens'])
+        database.insert_citizens_to_new_import(citizens)
         request_time = datetime.datetime.utcnow()
         r = requests.get(f'http://{service_address}/imports/1/citizens')
         response_time = datetime.datetime.utcnow()
@@ -1029,7 +1037,7 @@ class TestGetBirthdays:
         assert r.status_code == 400
 
     def test_get_birthdays(self, service_address: str, database: database_framework.DataBase) -> None:
-        database.insert_citizens_to_new_import(CORRECT_CITIZENS_DATA['citizens'])
+        database.insert_citizens_to_new_import(prepare_citizens(CORRECT_CITIZENS_DATA['citizens']))
         r = requests.get(f'http://{service_address}/imports/1/citizens/birthdays')
         assert r.status_code == 200
         expected_birthdays = {
@@ -1051,7 +1059,8 @@ class TestGetBirthdays:
 
     def test_get_birthdays_request_time(self, service_address: str, database: database_framework.DataBase) -> None:
         citizens = generate_10000_citizens_with_1000_relations()
-        database.insert_citizens_to_new_import(citizens['citizens'])
+        citizens = prepare_citizens(citizens['citizens'])
+        database.insert_citizens_to_new_import(citizens)
         request_time = datetime.datetime.utcnow()
         r = requests.get(f'http://{service_address}/imports/1/citizens/birthdays')
         response_time = datetime.datetime.utcnow()

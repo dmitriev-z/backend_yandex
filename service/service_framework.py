@@ -4,7 +4,7 @@ import datetime
 import enum
 import multiprocessing
 import re
-from typing import Any, Callable, Dict, List, NewType, Optional, Tuple, Union
+from typing import Any, Dict, List, NewType, Optional, Tuple, Union
 
 import cerberus
 
@@ -34,38 +34,38 @@ class CitizenAttr(enum.Enum):
     RELATIVES = 'relatives'
 
 
-def _validate_string(field: str, value: Any, error: Callable[..., Any]) -> Optional[Callable[..., Any]]:
-    if value is None:
-        error(field, 'Could not be NoneType')
-    else:
-        pattern = re.compile(r'[^\W_]')
-        if not pattern.match(value):
-            error(field, 'Must contain at least one letter or digit')
+class Validator(cerberus.Validator):
+    def _check_with_validate_string(self, field: str, value: Any):
+        if value is None:
+            self._error(field, 'Could not be NoneType')
+        else:
+            pattern = re.compile(r'[^\W_]')
+            if not pattern.match(value):
+                self._error(field, 'Must contain at least one letter or digit')
 
-
-def _validate_date(field: str, value: Any, error: Callable[..., Any]) -> Optional[Callable[..., Any]]:
-    try:
-        date = datetime.datetime.strptime(value, BirthdayFmt).date()
-    except (TypeError, ValueError):
-        error(field, 'Wrong date format.')
-    else:
-        if date > datetime.datetime.utcnow().date():
-            error(field, 'Birth date could not be more than current date.')
+    @staticmethod
+    def _normalize_coerce_str_to_date(value: Any) -> Optional[datetime.datetime]:
+        try:
+            date = datetime.datetime.strptime(value, '%d.%m.%Y')
+        except ValueError:
+            return None
+        else:
+            return date
 
 
 class CitizenValidator:
     CITIZEN_VALIDATION_SCHEMA = {
         'citizen_id': {'type': 'integer', 'min': 0, 'coerce': lambda v: None if isinstance(v, bool) else v},
-        'town': {'type': 'string', 'minlength': 1, 'maxlength': 256, 'check_with': _validate_string},
-        'street': {'type': 'string', 'minlength': 1, 'maxlength': 256, 'check_with': _validate_string},
-        'building': {'type': 'string', 'minlength': 1, 'maxlength': 256, 'check_with': _validate_string},
+        'town': {'type': 'string', 'minlength': 1, 'maxlength': 256, 'check_with': 'validate_string'},
+        'street': {'type': 'string', 'minlength': 1, 'maxlength': 256, 'check_with': 'validate_string'},
+        'building': {'type': 'string', 'minlength': 1, 'maxlength': 256, 'check_with': 'validate_string'},
         'apartment': {'type': 'integer', 'min': 0, 'coerce': lambda v: None if isinstance(v, bool) else v},
         'name': {'type': 'string', 'minlength': 1, 'maxlength': 256},
-        'birth_date': {'check_with': _validate_date},
+        'birth_date': {'type': 'datetime', 'max': datetime.datetime.utcnow(), 'coerce': 'str_to_date'},
         'gender': {'type': 'string', 'allowed': ['male', 'female']},
         'relatives': {'type': 'list', 'schema': {'type': 'integer'}},
     }
-    VALIDATOR = cerberus.Validator(CITIZEN_VALIDATION_SCHEMA, require_all=True)
+    VALIDATOR = Validator(CITIZEN_VALIDATION_SCHEMA, require_all=True)
 
     @classmethod
     def validate_citizen(cls, citizen: Dict[str, Any]) -> Optional[Tuple[ValidatedCitizen, Counter, Counter]]:
@@ -159,7 +159,7 @@ class Service:
             self.database.add_citizen_to_new_relatives(import_id, citizen_id)
         else:
             self.database.update_citizen(import_id, citizen_id, patched_citizen)
-        return patched_citizen
+        return self.database.get_citizen(import_id, citizen_id)
 
     def get_import_citizens(self, import_id: int) -> Optional[Citizens]:
         if import_id not in self.database.imports:
@@ -178,14 +178,11 @@ class Service:
             if not citizen:
                 continue
             citizen_relatives = citizen['relatives']
-            citizen_birth_date = datetime.datetime.strptime(citizen['birth_date'], BirthdayFmt).date()
             for related_citizen_id in citizen_relatives:
                 related_citizen = citizens_with_relatives_dict[related_citizen_id]
-                related_citizen_birth_date = datetime.datetime.strptime(related_citizen['birth_date'],
-                                                                        BirthdayFmt).date()
                 related_citizen_relatives = related_citizen['relatives']
-                presents[related_citizen_birth_date.month][citizen_id] += 1
-                presents[citizen_birth_date.month][related_citizen_id] += 1
+                presents[related_citizen['birth_date'].month][citizen_id] += 1
+                presents[citizen['birth_date'].month][related_citizen_id] += 1
                 related_citizen_relatives.remove(citizen_id)
                 if not related_citizen_relatives:
                     citizens_with_relatives_dict.pop(related_citizen_id)
